@@ -8,6 +8,7 @@
 #define mqtt_server "fawvietnam.xyz" // Thay bằng thông tin của bạn
 #define mqtt_topic_pub "demo"   //Giữ nguyên nếu bạn tạo topic tên là demo
 #define mqtt_topic_sub "cmd"
+#define LED D1 
 
 const uint16_t mqtt_port = 1883; //Port của CloudMQTT
 
@@ -19,10 +20,13 @@ char msg[50];
 int value = 0;
 
 void setup() {
+  pinMode(LED, OUTPUT);    // LED pin as output.
+  digitalWrite(LED, LOW);
   Serial.begin(115200);
   setup_wifi();
   client.setServer(mqtt_server, mqtt_port); 
   client.setCallback(callback);
+  
 }
 // Hàm kết nối wifi
 void setup_wifi() {
@@ -46,14 +50,18 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print(topic);
   Serial.print("] ");
   if ((char)payload[0] == '1'){
-    Serial.println("ON"); 
+    digitalWrite(LED, HIGH);
+    Serial.println("ON");
+    delay(100);
   }
   else{
+     digitalWrite(LED, LOW);
      Serial.println("OFF");
+     delay(100);
   }
-//  for (int i = 0; i < length; i++) {
-//    Serial.print((char)payload[i]);
-//  }
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)payload[i]);
+  }
 //  String myString = String((char*)payload);
 //  Serial.println(myString);
   Serial.println();
