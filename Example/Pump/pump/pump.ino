@@ -1,5 +1,7 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
+#include <ESP8266WiFiMulti.h>
+
 // Cập nhật thông tin
 // Thông tin về wifi
 #define ssid "Fatlab"
@@ -15,6 +17,11 @@ const uint16_t mqtt_port = 1883; //Port của CloudMQTT
 WiFiClient espClient;
 PubSubClient client(espClient);
 
+ESP8266WiFiMulti wifiMulti;
+
+// WiFi connect timeout per AP. Increase when connecting takes longer.
+const uint32_t connectTimeoutMs = 5000;
+
 long lastMsg = 0;
 char msg[50];
 int value = 0;
@@ -23,7 +30,22 @@ void setup() {
   pinMode(LED, OUTPUT);    // LED pin as output.
   digitalWrite(LED, LOW);
   Serial.begin(115200);
-  setup_wifi();
+  // setup_wifi();
+
+  // Don't save WiFi configuration in flash - optional
+  WiFi.persistent(false);
+
+  Serial.begin(115200);
+  Serial.println("\nESP8266 Multi WiFi example");
+
+  // Set WiFi to station mode
+  WiFi.mode(WIFI_STA);
+
+  // Register multi WiFi networks
+  wifiMulti.addAP("Xiaomi", "bean2020");
+  wifiMulti.addAP("TP-Link_1768", "abcd1234");
+  // wifiMulti.addAP("ssid_from_AP_3", "your_password_for_AP_3");
+  // More is possible
   client.setServer(mqtt_server, mqtt_port); 
   client.setCallback(callback);
   
@@ -88,6 +110,17 @@ void reconnect() {
   }
 }
 void loop() {
+
+    // Maintain WiFi connection
+  if (wifiMulti.run(connectTimeoutMs) == WL_CONNECTED) {
+    Serial.print("WiFi connected: ");
+    Serial.print(WiFi.SSID());
+    Serial.print(" ");
+    Serial.println(WiFi.localIP());
+  } else {
+    Serial.println("WiFi not connected!");
+  }
+  
   // Kiểm tra kết nối
   if (!client.connected()) {
     reconnect();
